@@ -511,7 +511,7 @@ class EntityDetailsBody extends Component<Props, State> {
         <div className={"flex w-full h-4 " + (this.props.entity.kind === "project" ? "" : colorToBackgroundColorClass(this.props.entity.color))} />
         <div className={"flex w-full h-full flex-row bg-white overflow-auto "}>
 
-          <div className="flex flex-col w-full p-2  ">
+          <div className="max-w-screen-md flex flex-col w-full p-2">
 
             <EntityDetailsAnnotations viewOnly={this.props.viewOnly} open={open} card={this.props.entity} demo={this.props.demo} edit={false} close={() => alert("close")} />
 

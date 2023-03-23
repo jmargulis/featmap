@@ -57,7 +57,7 @@ class EntityDetailsModal extends Component<Props, State> {
 
       render() {
         return (
-          <div className=" w-full  max-w-5xl   fm-max-dialog  overflow-y-auto ">
+          <div className="m-auto w-full max-w-5xl fm-max-dialog overflow-y-auto">
             <EntityDetailsBody demo={this.props.demo} viewOnly={this.props.viewOnly} url={this.props.url} comments={this.props.comments} entity={this.props.card} close={this.props.close} />
           </div>
         )
