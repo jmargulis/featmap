@@ -41,6 +41,10 @@ export enum CardStatus {
 
 export type personaBarState = { page: "all" } | { page: "persona", personaId: string, edit: boolean } | { page: "create", workflowId: string, workflowTitle: string }
 
+export type filterBarState = {
+    color: Color
+    annotations: Annotation2[]
+}
 
 export const subscriptionLevelToText = (level: SubscriptionLevels) => {
     switch (level) {

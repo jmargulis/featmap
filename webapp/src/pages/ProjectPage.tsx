@@ -1,41 +1,48 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import Board from '../components/Board';
 import EntityDetailsPage from './EntityDetailsPage';
-import { application, getWorkspaceByName, getMembership, getSubscription } from '../store/application/selectors';
-import { projects, getProjectById } from '../store/projects/selectors';
-import { RouteComponentProps } from 'react-router'
-import { Route, Switch, Link } from 'react-router-dom'
-import { IProject } from '../store/projects/types';
-import { loadMilestonesAction } from '../store/milestones/actions';
-import { loadWorkflowsAction } from '../store/workflows/actions';
-import { milestones, filterMilestonesOnProject } from '../store/milestones/selectors';
-import { AppState } from '../store'
-import { connect } from 'react-redux'
-import { API_GET_PROJECT, API_GET_PROJECT_RESP } from '../api';
+import {application, getMembership, getSubscription, getWorkspaceByName} from '../store/application/selectors';
+import {getProjectById, projects} from '../store/projects/selectors';
+import {RouteComponentProps} from 'react-router'
+import {Link, Route, Switch} from 'react-router-dom'
+import {IProject} from '../store/projects/types';
+import {loadMilestonesAction} from '../store/milestones/actions';
+import {loadWorkflowsAction} from '../store/workflows/actions';
+import {filterMilestonesOnProject, milestones} from '../store/milestones/selectors';
+import {AppState} from '../store'
+import {connect} from 'react-redux'
+import {API_GET_PROJECT, API_GET_PROJECT_RESP} from '../api';
 import {IApplication, IWorkspace} from '../store/application/types';
-import { IMilestone } from '../store/milestones/types';
-import { features, filterFeaturesOnMilestoneAndSubWorkflow } from '../store/features/selectors';
-import { filterWorkflowsOnProject } from '../store/workflows/selectors';
-import { subWorkflows, getSubWorkflowByWorkflow } from '../store/subworkflows/selectors';
-import { ISubWorkflow } from '../store/subworkflows/types';
-import { workflows } from '../store/workflows/selectors';
-import { IWorkflow } from '../store/workflows/types';
-import { loadSubWorkflowsAction } from '../store/subworkflows/actions';
-import { loadFeaturesAction } from '../store/features/actions';
-import { loadPersonasAction } from '../store/personas/actions';
-import { loadWorkflowPersonasAction } from '../store/workflowpersonas/actions';
-import { loadFeatureCommentsAction } from '../store/featurecomments/actions';
-import { IFeature } from '../store/features/types';
-import { isEditor, subIsInactive, subIsTrial, subIsBasicOrAbove, copyStringToClipboard } from '../core/misc';
-import { Button } from '../components/elements';
+import {IMilestone} from '../store/milestones/types';
+import {features, filterFeaturesOnMilestoneAndSubWorkflow} from '../store/features/selectors';
+import {filterWorkflowsOnProject, workflows} from '../store/workflows/selectors';
+import {getSubWorkflowByWorkflow, subWorkflows} from '../store/subworkflows/selectors';
+import {ISubWorkflow} from '../store/subworkflows/types';
+import {IWorkflow} from '../store/workflows/types';
+import {loadSubWorkflowsAction} from '../store/subworkflows/actions';
+import {loadFeaturesAction} from '../store/features/actions';
+import {loadPersonasAction} from '../store/personas/actions';
+import {loadWorkflowPersonasAction} from '../store/workflowpersonas/actions';
+import {loadFeatureCommentsAction} from '../store/featurecomments/actions';
+import {IFeature} from '../store/features/types';
+import {
+    copyStringToClipboard,
+    filterBarState,
+    isEditor,
+    subIsBasicOrAbove,
+    subIsInactive,
+    subIsTrial
+} from '../core/misc';
+import {Button} from '../components/elements';
 import queryString from 'query-string'
-import { featureComments, filterFeatureCommentsOnProject } from '../store/featurecomments/selectors';
-import { IFeatureComment } from '../store/featurecomments/types';
+import {featureComments, filterFeatureCommentsOnProject} from '../store/featurecomments/selectors';
+import {IFeatureComment} from '../store/featurecomments/types';
 import ContextMenu from '../components/ContextMenu';
-import { workflowPersonas, filterWorkflowPersonasOnProject } from '../store/workflowpersonas/selectors';
-import { personas, filterPersonasOnProject } from '../store/personas/selectors';
-import { IPersona } from '../store/personas/types';
-import { IWorkflowPersona } from '../store/workflowpersonas/types';
+import {filterWorkflowPersonasOnProject, workflowPersonas} from '../store/workflowpersonas/selectors';
+import {filterPersonasOnProject, personas} from '../store/personas/selectors';
+import {IPersona} from '../store/personas/types';
+import {IWorkflowPersona} from '../store/workflowpersonas/types';
+import {filter} from "../store/filters/selectors";
 
 const mapStateToProps = (state: AppState) => ({
     application: application(state),
@@ -46,6 +53,7 @@ const mapStateToProps = (state: AppState) => ({
     features: features(state),
     featureComments: featureComments(state),
     personas: personas(state),
+    filter: filter(state),
     workflowPersonas: workflowPersonas(state)
 })
 
@@ -68,6 +76,7 @@ interface PropsFromState {
     features: IFeature[]
     featureComments: IFeatureComment[]
     personas: IPersona[]
+    filter?: filterBarState
     workflowPersonas: IWorkflowPersona[]
 }
 interface RouterProps extends RouteComponentProps<{
@@ -89,10 +98,11 @@ type Props = RouterProps & PropsFromState & PropsFromDispatch & SelfProps
 interface State {
     projectFound: boolean
     loading: boolean
-    showClosedMilstones: boolean
+    showClosedMilestones: boolean
     copySuccess: boolean
     demo: boolean
     showPersonas: boolean
+    showFilter: boolean
 }
 
 class ProjectPage extends Component<Props, State> {
@@ -101,10 +111,11 @@ class ProjectPage extends Component<Props, State> {
         this.state = {
             projectFound: false,
             loading: true,
-            showClosedMilstones: false,
+            showClosedMilestones: false,
             copySuccess: false,
             demo: false,
-            showPersonas: false
+            showPersonas: false,
+            showFilter: false,
         }
     }
 
@@ -226,11 +237,16 @@ class ProjectPage extends Component<Props, State> {
                             <Button title="Personas" icon="person_outline" noborder handleOnClick={() => this.setState({ showPersonas: true })} />
                         </div>
 
+                        <div >
+                            <Button title="Filter" icon="filter_alt" noborder handleOnClick={() => this.setState({ showFilter: true })} />
+                            <span className="bg-green-500"></span>
+                        </div>
+
                         <div className="">
-                            {this.state.showClosedMilstones ?
-                                <Button iconColor="text-green-500" noborder icon="toggle_on" title="Show closed" handleOnClick={() => this.setState({ showClosedMilstones: false })} />
+                            {this.state.showClosedMilestones ?
+                                <Button iconColor="text-green-500" noborder icon="toggle_on" title="Show closed" handleOnClick={() => this.setState({ showClosedMilestones: false })} />
                                 :
-                                <Button icon="toggle_off " noborder title="Show closed" handleOnClick={() => this.setState({ showClosedMilstones: true })} />
+                                <Button icon="toggle_off " noborder title="Show closed" handleOnClick={() => this.setState({ showClosedMilestones: true })} />
                             }
                         </div>
 
@@ -245,7 +261,7 @@ class ProjectPage extends Component<Props, State> {
         return (
             <div className="overflow-x-auto">
                 <Board
-                    showClosed={this.state.showClosedMilstones}
+                    showClosed={this.state.showClosedMilestones}
                     viewOnly={viewOnly}
                     url={this.props.match.url}
                     features={this.props.features}
@@ -262,6 +278,9 @@ class ProjectPage extends Component<Props, State> {
                     showPersonas={this.state.showPersonas}
                     closePersonas={() => this.setState({ showPersonas: false })}
                     openPersonas={() => this.setState({ showPersonas: true })}
+                    showFilter={this.state.showFilter}
+                    closeFilter={() => this.setState({ showFilter: false })}
+                    filter={this.props.filter}
                 />
 
 

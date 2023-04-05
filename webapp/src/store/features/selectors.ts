@@ -1,7 +1,7 @@
-import { AppState } from '..'
-import { createSelector } from 'reselect'
-import { IFeature } from './types';
-import { CardStatus } from '../../core/misc';
+import {AppState} from '..'
+import {createSelector} from 'reselect'
+import {IFeature} from './types';
+import {Annotation2, CardStatus, Color} from '../../core/misc';
 
 const getFeaturesState = ((state: AppState) => state.features)
 
@@ -38,4 +38,19 @@ export const getFeature = (ff: IFeature[], id: string) => {
     return ff.find(f => f.id === id)!
 }
 
+export const filterFeaturesByColor = (ff: IFeature[], color: Color) => {
+   return ff.filter(f => color === Color.NONE || f.color === color)
+}
 
+export const filterFeaturesByAnnotation = (ff: IFeature[], annotations: Annotation2[]) => {
+    return ff.filter(f => {
+        if (annotations.length === 0) return true
+
+        const cardAnnotations = f.annotations.split(',')
+        let bResult = false
+        for (const annotation of annotations ) {
+            bResult = bResult || cardAnnotations.includes(annotation)
+        }
+        return bResult
+    })
+}

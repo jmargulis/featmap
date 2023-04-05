@@ -6,6 +6,7 @@ import * as fromSubWorkflows from './subworkflows/reducers'
 import * as fromMilestones from './milestones/reducers'
 import * as fromApplication from './application/reducers'
 import * as fromPersonas from './personas/reducers'
+import * as fromFilter from './filters/reducers'
 import * as fromWorkflowPersonas from './workflowpersonas/reducers'
 
 import { combineReducers } from 'redux';
@@ -19,6 +20,7 @@ import { Actions as ProjectsActions } from "./projects/actions"
 import { Actions as WorkflowsActions } from "./workflows/actions"
 import { Actions as SubworkflowsActions } from "./workflows/actions"
 import { Actions as PersonaActions } from "./personas/actions"
+import { Actions as FilterActions } from "./filters/actions"
 
 
 export interface AppState {
@@ -31,6 +33,7 @@ export interface AppState {
     application: fromApplication.State
     router: RouterState
     personas: fromPersonas.State
+    filter: fromFilter.State
     workflowPersonas: fromWorkflowPersonas.State
 }
 
@@ -43,8 +46,9 @@ export const reducer = (history: History) => combineReducers<AppState>({
     milestones: fromMilestones.reducer,
     application: fromApplication.reducer,
     personas: fromPersonas.reducer,
+    filter: fromFilter.reducer,
     workflowPersonas: fromWorkflowPersonas.reducer,
     router: connectRouter(history)
 })
 
-export type AllActions = ApplicationActions | FeaturesActions | MilestonesActions | ProjectsActions | WorkflowsActions | SubworkflowsActions | PersonaActions
+export type AllActions = ApplicationActions | FeaturesActions | MilestonesActions | ProjectsActions | WorkflowsActions | SubworkflowsActions | PersonaActions | FilterActions

@@ -1,45 +1,68 @@
-import { Button } from './elements'
-import React, { Component } from 'react';
+import {Button} from './elements'
+import React, {Component} from 'react';
 import EmptyCard from './EmptyCard';
-import { IWorkflow } from '../store/workflows/types';
-import { moveFeatureAction, updateFeatureAction } from '../store/features/actions';
-import { moveMilestoneAction, updateMilestoneAction } from '../store/milestones/actions';
-import { moveWorkflowAction, updateWorkflowAction } from '../store/workflows/actions';
-import { moveSubWorkflowAction, updateSubWorkflowAction } from '../store/subworkflows/actions';
-import { AppState } from '../store'
+import {IWorkflow} from '../store/workflows/types';
+import {moveFeatureAction, updateFeatureAction} from '../store/features/actions';
+import {moveMilestoneAction, updateMilestoneAction} from '../store/milestones/actions';
+import {moveWorkflowAction, updateWorkflowAction} from '../store/workflows/actions';
+import {moveSubWorkflowAction, updateSubWorkflowAction} from '../store/subworkflows/actions';
+import {AppState} from '../store'
 import {
   filterClosedSubWorkflows,
   filterOutClosedSubWorkflows,
   getSubWorkflowByWorkflow
 } from '../store/subworkflows/selectors';
-import { filterFeaturesOnMilestoneAndSubWorkflow, filterFeaturesOnMilestone, filterFeaturesOnSubWorkflow } from '../store/features/selectors';
-import { application } from '../store/application/selectors';
-import { connect } from 'react-redux'
-import { IFeature } from '../store/features/types';
-import { ISubWorkflow } from '../store/subworkflows/types';
-import { IMilestone } from '../store/milestones/types';
-import { DraggableProvided, DraggableStateSnapshot, DroppableProvided, DroppableStateSnapshot, DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { IApplication } from '../store/application/types';
-import CreateCardModal from './CreateCardModal';
+import {
+  filterFeaturesByAnnotation,
+  filterFeaturesByColor,
+  filterFeaturesOnMilestone,
+  filterFeaturesOnMilestoneAndSubWorkflow,
+  filterFeaturesOnSubWorkflow,
+} from '../store/features/selectors';
+import {application} from '../store/application/selectors';
+import {connect} from 'react-redux'
+import {IFeature} from '../store/features/types';
+import {ISubWorkflow} from '../store/subworkflows/types';
+import {IMilestone} from '../store/milestones/types';
+import {
+  DragDropContext,
+  Draggable,
+  DraggableProvided,
+  DraggableStateSnapshot,
+  Droppable,
+  DroppableProvided,
+  DroppableStateSnapshot,
+  DropResult
+} from 'react-beautiful-dnd';
+import {IApplication} from '../store/application/types';
+import CreateCardModal, {Types} from './CreateCardModal';
 import Card from './Card';
-import { Types } from './CreateCardModal';
-import { API_MOVE_MILESTONE, API_MOVE_FEATURE, API_MOVE_SUBWORKFLOW, API_MOVE_WORKFLOW, API_DELETE_WORKFLOWPERSONA, API_CREATE_WORKFLOWPERSONA } from '../api';
+import {
+  API_CREATE_WORKFLOWPERSONA,
+  API_DELETE_WORKFLOWPERSONA,
+  API_MOVE_FEATURE,
+  API_MOVE_MILESTONE,
+  API_MOVE_SUBWORKFLOW,
+  API_MOVE_WORKFLOW
+} from '../api';
 import NewCard from './NewCard';
-import { personaBarState } from '../core/misc';
+import {Color, filterBarState, personaBarState} from '../core/misc';
 import NewDimCard from './NewDimCard';
-import { filterClosedWorkflows, filterOutClosedWorkflows } from "../store/workflows/selectors";
-import { IFeatureComment } from '../store/featurecomments/types';
-import { filterFeatureCommentsOnFeature } from '../store/featurecomments/selectors';
+import {filterClosedWorkflows, filterOutClosedWorkflows,} from "../store/workflows/selectors";
+import {IFeatureComment} from '../store/featurecomments/types';
+import {filterFeatureCommentsOnFeature} from '../store/featurecomments/selectors';
 import Personas from './Personas';
+import Filter from "./Filter";
 import ContextMenu from './ContextMenu';
-import { IPersona } from '../store/personas/types';
-import { IWorkflowPersona } from '../store/workflowpersonas/types';
-import { filterWorkflowPersonasOnWorkflow } from '../store/workflowpersonas/selectors';
-import { getPersona, removeSpecificPersonas, sortPersonas } from '../store/personas/selectors';
-import { deleteWorkflowPersonaAction, createWorkflowPersonaAction } from '../store/workflowpersonas/actions';
-import { avatar } from '../avatars/';
-import { v4 as uuid } from 'uuid'
-import { filterClosedMilestones, filterOpenMilestones } from '../store/milestones/selectors';
+import {IPersona} from '../store/personas/types';
+import {IWorkflowPersona} from '../store/workflowpersonas/types';
+import {filterWorkflowPersonasOnWorkflow} from '../store/workflowpersonas/selectors';
+import {getPersona, removeSpecificPersonas, sortPersonas} from '../store/personas/selectors';
+import {createWorkflowPersonaAction, deleteWorkflowPersonaAction} from '../store/workflowpersonas/actions';
+import {avatar} from '../avatars/';
+import {v4 as uuid} from 'uuid'
+import {filterClosedMilestones, filterOpenMilestones} from '../store/milestones/selectors';
+import {setFilterAction} from "../store/filters/actions";
 
 
 interface SelfProps {
@@ -54,11 +77,14 @@ interface SelfProps {
   workflowPersonas: IWorkflowPersona[]
   url: string,
   viewOnly: boolean
+  filter?: filterBarState
   showClosed: boolean
   demo: boolean
   showPersonas: boolean
   closePersonas: () => void
   openPersonas: () => void
+  showFilter?: boolean
+  closeFilter?: () => void
 }
 
 interface PropsFromState {
@@ -75,6 +101,7 @@ interface PropsFromDispatch {
   updateWorkflow: typeof updateWorkflowAction
   deleteWorkflowPersona: typeof deleteWorkflowPersonaAction
   createWorkflowPersona: typeof createWorkflowPersonaAction
+  setFilter: typeof setFilterAction
 }
 
 interface State {
@@ -87,6 +114,7 @@ interface State {
   createSubWorkflowWorkflowId: string
   showClosedMilestones: boolean
   personaBarState: personaBarState
+  filterBarState: filterBarState
 }
 
 const mapStateToProps = (state: AppState) => ({
@@ -102,7 +130,8 @@ const mapDispatchToProps = {
   moveWorkflow: moveWorkflowAction,
   updateWorkflow: updateWorkflowAction,
   deleteWorkflowPersona: deleteWorkflowPersonaAction,
-  createWorkflowPersona: createWorkflowPersonaAction
+  createWorkflowPersona: createWorkflowPersonaAction,
+  setFilter: setFilterAction,
 }
 
 type Props = PropsFromState & PropsFromDispatch & SelfProps
@@ -119,8 +148,8 @@ class Board extends Component<Props, State> {
       showCreateSubWorkflowModal: false,
       createSubWorkflowWorkflowId: "",
       showClosedMilestones: false,
-      personaBarState: { page: "all" }
-
+      personaBarState: { page: "all" },
+      filterBarState: this.props.filter || { color: Color.NONE, annotations: [] },
     };
   }
 
@@ -394,6 +423,10 @@ class Board extends Component<Props, State> {
               pageState={this.state.personaBarState}
               setPageState={(state: personaBarState) => this.setState({ personaBarState: state })}
               personas={this.props.personas} demo={this.props.demo} workspaceId={this.props.workspaceId} projectId={projectId} close={() => { this.setState({ personaBarState: { page: "all" } }); this.props.closePersonas() }} /> : null}
+            {this.props.showFilter ? <Filter
+              pageState={this.state.filterBarState}
+              setPageState={(state: filterBarState) => {console.log('Filter.setPageState', state); this.setState({ filterBarState: state })}}
+              close={() => { /*this.setState({ filterBarState: { color: Color.NONE, annotations: [] } });*/ this.props.closeFilter?.() }} /> : null}
             {
               isEmpty ?
 
@@ -672,7 +705,13 @@ class Board extends Component<Props, State> {
 
                                                     {
                                                       ss.map(sw => {
-                                                        const ff = filterFeaturesOnMilestoneAndSubWorkflow(features, m.id, sw.id)
+                                                        let ff = filterFeaturesOnMilestoneAndSubWorkflow(features, m.id, sw.id)
+                                                        if (this.state.filterBarState.color) {
+                                                          ff = filterFeaturesByColor(ff, this.state.filterBarState.color)
+                                                        }
+                                                        if (this.state.filterBarState.annotations) {
+                                                          ff = filterFeaturesByAnnotation(ff, this.state.filterBarState.annotations)
+                                                        }
                                                         return [
                                                           <Droppable key={sw.id} droppableId={"df*" + m.id + "*" + sw.id} type="FEATURE">
                                                             {(providedDroppable: DroppableProvided, snapshotDroppable: DroppableStateSnapshot) => (

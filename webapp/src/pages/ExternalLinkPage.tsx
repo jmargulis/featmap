@@ -91,6 +91,7 @@ interface State {
     showClosedMilestones: boolean
     demo: boolean
     showPersonas: boolean
+    showFilter: boolean
 }
 
 class ExternalLinkPage extends Component<Props, State> {
@@ -101,7 +102,8 @@ class ExternalLinkPage extends Component<Props, State> {
             projectId: undefined,
             showClosedMilestones: false,
             demo: false,
-            showPersonas: false
+            showPersonas: false,
+            showFilter: false,
         }
     }
 
@@ -179,10 +181,11 @@ class ExternalLinkPage extends Component<Props, State> {
                     comments={filterFeatureCommentsOnProject(this.props.featureComments, project.id)}
                     personas={filterPersonasOnProject(this.props.personas, project.id)}
                     workflowPersonas={filterWorkflowPersonasOnProject(this.props.workflowPersonas, project.id)}
-
                     showPersonas={this.state.showPersonas}
                     closePersonas={() => this.setState({ showPersonas: false })}
                     openPersonas={() => this.setState({ showPersonas: true })}
+                    showFilter={this.state.showFilter}
+                    closeFilter={() => this.setState({ showFilter: false })}
                 />
             </div>
         )

@@ -1,7 +1,8 @@
 import { AppState } from '..'
 import { createSelector } from 'reselect'
 import { IWorkflow } from './types';
-import { CardStatus } from '../../core/misc';
+import {Annotation2, CardStatus, Color} from '../../core/misc';
+import {IFeature} from "../features/types";
 
 const getWorkflowsState = ((state: AppState) => state.workflows)
 
