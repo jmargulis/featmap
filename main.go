@@ -73,6 +73,7 @@ func main() {
 
 	db, err := sqlx.Connect("postgres", config.DbConnectionString)
 	if err != nil {
+		fmt.Println(config.DbConnectionString)
 		log.Fatalln("database error:" + err.Error())
 	}
 	defer func() {
