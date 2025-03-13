@@ -48,6 +48,7 @@ import { IMilestone } from '../store/milestones/types';
 import { ISubWorkflow } from '../store/subworkflows/types';
 import { IWorkflow } from '../store/workflows/types';
 import { getSubWorkflowByWorkflow, subWorkflows } from '../store/subworkflows/selectors';
+import ColorPicker from "./ColorPicker";
 
 const mapStateToProps = (state: AppState) => ({
   application: application(state),
@@ -567,24 +568,7 @@ class EntityDetailsBody extends Component<Props, State> {
                     case "milestone":
                     case "feature": {
                       const color = this.props.entity.color
-                      return <div className="flex flex-col text-xs mt-3 ">
-                        <div className=" mb-1 font-bold">
-                          Color</div>
-                        <div className="flex items-center flex-grow">
-                          <div className="flex flex-row">{
-                            Colors.map(x => {
-                              return [
-                                <div key={x} className="flex flex-col  mr-1">
-                                  <button onClick={() => this.handleChangeColor(x)} title={x} className={"flex h-4 w-4 border " + colorToBackgroundColorClass(x) + " " + colorToBorderColorClass(x)} />
-                                  <div className="flex justify-center" >
-                                    {(color === x) ? <div>●</div> : null}
-                                  </div>
-                                </div>
-                              ]
-                            })} </div>
-
-                        </div>
-                      </div>
+                      return <ColorPicker selected={color} onChangeColor={this.handleChangeColor} />
                     }
                     default:
                   }

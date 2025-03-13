@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -56,7 +55,8 @@ func main() {
 
 	config, err := readConfiguration()
 	if err != nil {
-		log.Fatalln("no conf.json found")
+		fmt.Println(err)
+		log.Fatalln("critical Configuration variables not set")
 	}
 
 	// CORS
@@ -146,20 +146,32 @@ func main() {
 }
 
 func readConfiguration() (Configuration, error) {
-	file, err := os.Open("conf.json")
+	// Instead of reading from a conf.json file, let's read from env variables
+	configuration := Configuration{
+		Environment:        os.Getenv("ENVIRONMENT"),
+		Mode:               os.Getenv("MODE"),
+		AppSiteURL:         os.Getenv("APP_SITE_URL"),
+		DbConnectionString: os.Getenv("DB_CONNECTION_STRING"),
+		JWTSecret:          os.Getenv("JWT_SECRET"),
+		Port:               os.Getenv("PORT"),
+		EmailFrom:          os.Getenv("EMAIL_FROM"),
+		SMTPServer:         os.Getenv("SMTP_SERVER"),
+		SMTPPort:           os.Getenv("SMTP_PORT"),
+		SMTPUser:           os.Getenv("SMTP_USER"),
+		SMTPPass:           os.Getenv("SMTP_PASS"),
+	}
 
-	defer func() {
-		if err := file.Close(); err != nil {
-			log.Println(err)
-		}
-	}()
-
-	decoder := json.NewDecoder(file)
-	configuration := Configuration{}
-	err = decoder.Decode(&configuration)
-
-	if configuration.SMTPPort == "" {
-		configuration.SMTPPort = "587"
+	err := error(nil)
+	if configuration.Environment == "" {
+		err = fmt.Errorf("ENVIRONMENT not set")
+	} else if configuration.AppSiteURL == "" {
+		err = fmt.Errorf("APP_SITE_URL not set")
+	} else if configuration.DbConnectionString == "" {
+		err = fmt.Errorf("DB_CONNECTION_STRING not set")
+	} else if configuration.JWTSecret == "" {
+		err = fmt.Errorf("JWT_SECRET not set")
+	} else if configuration.Port == "" {
+		err = fmt.Errorf("PORT not set")
 	}
 
 	return configuration, err
