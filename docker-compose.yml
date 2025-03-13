@@ -5,9 +5,9 @@ services:
                 volumes:
                         - ${PWD}/data:/var/lib/postgresql/data
                 environment:
-                        POSTGRES_DB: ${FEATMAP_DB}
-                        POSTGRES_USER: ${FEATMAP_DB_USER}
-                        POSTGRES_PASSWORD: ${FEATMAP_DB_PASSWORD}
+                        POSTGRES_DB: '${FEATMAP_DB}'
+                        POSTGRES_USER: '${FEATMAP_DB_USER}'
+                        POSTGRES_PASSWORD: '${FEATMAP_DB_PASSWORD}'
                 healthcheck:
                         test: ["CMD-SHELL", "pg_isready -U ${FEATMAP_DB_USER}"]
                         interval: 10s
@@ -24,16 +24,14 @@ services:
                 depends_on: 
                     postgres:
                         condition: service_healthy
-                volumes:
-                        - ${PWD}/conf.json:/opt/featmap/conf.json
                 environment:
-                        APP_SITE_URL: ${APP_SITE_URL}
-                        PORT: ${FEATMAP_HTTP_PORT}
-                        DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
-                        EMAIL_FROM: ${EMAIL_FROM}
-                        ENVIRONMENT: ${ENVIRONMENT}
-                        JWT_SECRET: ${JWT_SECRET}
-                        SMTP_PASSWORD: ${SMTP_PASSWORD}
-                        SMTP_PORT: ${SMTP_PORT}
-                        SMTP_SERVER: ${SMTP_SERVER}
-                        SMTP_USER: ${SMTP_USER}
+                        APP_SITE_URL: '${APP_SITE_URL}'
+                        PORT: '${FEATMAP_HTTP_PORT}'
+                        DB_CONNECTION_STRING: '${DB_CONNECTION_STRING}'
+                        EMAIL_FROM: '${EMAIL_FROM}'
+                        ENVIRONMENT: '${ENVIRONMENT}'
+                        JWT_SECRET: '${JWT_SECRET}'
+                        SMTP_PASSWORD: '${SMTP_PASSWORD}'
+                        SMTP_PORT: '${SMTP_PORT}'
+                        SMTP_SERVER: '${SMTP_SERVER}'
+                        SMTP_USER: '${SMTP_USER}'
